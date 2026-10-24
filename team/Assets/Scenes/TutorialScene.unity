@@ -132,7 +132,7 @@ GameObject:
   - component: {fileID: 681485798}
   - component: {fileID: 681485800}
   m_Layer: 5
-  m_Name: Panel
+  m_Name: SerifPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -211,7 +211,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SerifController
   nameText: {fileID: 1716909116}
   serifText: {fileID: 1533780499}
-  characterInterval: 0.05
+  characterImage: {fileID: 1629712619}
+  characterInterval: 0.03
+  charaSprites:
+  - characterName: "\u306F\u308B\u3042\u304D"
+    sprite: {fileID: -2705399594761621733, guid: 297d49d4f9727634680015e6ede726f7, type: 3}
+  - characterName: "\u3059\u3044"
+    sprite: {fileID: -1885078946935312817, guid: d401c664d1aaf1a4ea5132c2b755a2b3, type: 3}
 --- !u!1 &1029219450
 GameObject:
   m_ObjectHideFlags: 0
@@ -498,7 +504,7 @@ GameObject:
   - component: {fileID: 1533780500}
   - component: {fileID: 1533780499}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: SerifText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -545,8 +551,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\u306F\u308B\u3042\u304D\u30AB\u30F3\u30D1\u30CB\u30FC"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: b8e1d566d90afb647bb1fa07ee80a236, type: 2}
-  m_sharedMaterial: {fileID: 4886359720344903352, guid: b8e1d566d90afb647bb1fa07ee80a236, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: d5ca5eab36903154aa9718b5a51a5e67, type: 2}
+  m_sharedMaterial: {fileID: 7096707911823592732, guid: d5ca5eab36903154aa9718b5a51a5e67, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -710,7 +716,7 @@ GameObject:
   - component: {fileID: 1716909117}
   - component: {fileID: 1716909116}
   m_Layer: 5
-  m_Name: CharacterName
+  m_Name: CharaName
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -757,8 +763,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\u306F\u308B\u3042\u304D"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: b8e1d566d90afb647bb1fa07ee80a236, type: 2}
-  m_sharedMaterial: {fileID: 4886359720344903352, guid: b8e1d566d90afb647bb1fa07ee80a236, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: d5ca5eab36903154aa9718b5a51a5e67, type: 2}
+  m_sharedMaterial: {fileID: 7096707911823592732, guid: d5ca5eab36903154aa9718b5a51a5e67, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -847,7 +853,7 @@ GameObject:
   - component: {fileID: 1804302379}
   - component: {fileID: 1804302378}
   m_Layer: 5
-  m_Name: Panel
+  m_Name: NamePanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
