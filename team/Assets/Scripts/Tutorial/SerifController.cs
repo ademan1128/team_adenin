@@ -1,4 +1,3 @@
-
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -6,15 +5,25 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering;
+using UnityEngine.UI;
 
 public class SerifController : MonoBehaviour
 {
     [Header("UI")]
     [SerializeField] private TMP_Text nameText;
     [SerializeField] private TMP_Text serifText;
+    [SerializeField] private Image characterImage;
 
     [Header("Settings")]
-    [SerializeField] private float characterInterval = 0.05f;
+    [SerializeField] private float characterInterval;
+    [System.Serializable]
+    public class CharacterSpriteData
+    {
+        public string characterName;
+        public Sprite sprite;
+    }
+    [SerializeField] private CharacterSpriteData[] charaSprites;
 
     private DialogueData dialogueData;
     private int currentIndex;
@@ -93,17 +102,41 @@ public class SerifController : MonoBehaviour
     }
 
     private void ShowDialogue()
+{
+    Dialogue dialogue =
+        dialogueData.dialogues[currentIndex];
+
+    nameText.text = dialogue.name;
+
+    // –¼‘O‚É‘Î‰‚·‚é—§‚¿ŠG‚ğİ’è
+    UpdateCharacterSprite(dialogue.name);
+
+    TypeSerifAsync(
+        dialogue.serif,
+        this.GetCancellationTokenOnDestroy()
+    ).Forget();
+}
+
+private void UpdateCharacterSprite(string characterName)
+{
+    foreach (var character in charaSprites)
     {
-        Dialogue dialogue =
-            dialogueData.dialogues[currentIndex];
-
-        nameText.text = dialogue.name;
-
-        TypeSerifAsync(
-            dialogue.serif,
-            this.GetCancellationTokenOnDestroy()
-        ).Forget();
+        if (character.characterName == characterName)
+        {
+            characterImage.sprite = character.sprite;
+            characterImage.enabled = character.sprite != null;
+            return;
+        }
     }
+
+    // ‘Î‰‚·‚éƒLƒƒƒ‰ƒNƒ^[‚ªŒ©‚Â‚©‚ç‚È‚¢ê‡
+    characterImage.sprite = null;
+    characterImage.enabled = false;
+
+    Debug.LogWarning(
+        $"—§‚¿ŠG‚ª“o˜^‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ: {characterName}"
+    );
+}
 
     private async UniTaskVoid TypeSerifAsync(
         string text,
