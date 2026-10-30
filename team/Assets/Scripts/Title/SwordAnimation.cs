@@ -34,10 +34,6 @@ public class SlashSettings
 
 public class SwordAnimation : MonoBehaviour
 {
-    [Header("刀の回転・移動用の親")]
-    [SerializeField] private RectTransform leftSword;
-    [SerializeField] private RectTransform rightSword;
-
     [Header("1回目に表示する子Image")]
     [SerializeField] private Image leftSwordImage;
     [SerializeField] private Image rightSwordImage;
