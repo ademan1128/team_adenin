@@ -1,87 +1,90 @@
 using System;
 using UnityEngine;
-using UnityEngine.UI;
 using DG.Tweening;
 
+// 刀1本分の位置と回転角度
 [Serializable]
-public class SwordPose
+public struct SlashPoseData
 {
     public Vector2 position;
     public float rotationZ;
 
-    public SwordPose(float x, float y, float angle)
+    public static SlashPoseData FromRectTransform(RectTransform target)
     {
-        position = new Vector2(x, y);
-        rotationZ = angle;
+        return new SlashPoseData
+        {
+            position = target.anchoredPosition,
+            rotationZ = target.localEulerAngles.z
+        };
     }
 }
 
+// 斬撃1回分の設定（左右の刀は画像を切り替えず、別々のUIを動かす）
 [Serializable]
-public class SlashSettings
+public class SlashRoundData
 {
-    public SwordPose leftStart = new SwordPose(0, 0, 0);
-    public SwordPose rightStart = new SwordPose(0, 0, 0);
-    public SwordPose leftHit = new SwordPose(0, 0, 0);
-    public SwordPose rightHit = new SwordPose(0, 0, 0);
-    public Vector2 sparkPosition = Vector2.zero;
+    [Header("この斬撃で使用する刀（子ImageのRectTransform）")]
+    public RectTransform leftImage;
+    public RectTransform rightImage;
 
+    [Header("開始位置")]
+    [Tooltip("オン：Sceneで事前に配置した位置と角度を使用。オフ：下の数値を使用")]
+    public bool useSceneStart = true;
+    public SlashPoseData leftStart;
+    public SlashPoseData rightStart;
+
+    [Header("衝突時の位置と角度")]
+    public SlashPoseData leftHit;
+    public SlashPoseData rightHit;
+
+    [Header("離脱位置")]
+    [Tooltip("オン：開始位置へ戻る。オフ：下の離脱位置を使用")]
+    public bool returnToStart = true;
+    public SlashPoseData leftExit;
+    public SlashPoseData rightExit;
+
+    [Header("時間（秒）")]
     [Min(0f)] public float readyTime = 0.08f;
     [Min(0.01f)] public float attackTime = 0.35f;
     [Min(0f)] public float hitStop = 0.05f;
     [Min(0.01f)] public float reboundTime = 0.22f;
     [Min(0f)] public float nextDelay = 0.12f;
+
+    [Header("衝突エフェクト（任意）")]
+    public Vector2 sparkPosition;
+    [Min(0.1f)] public float sparkScale = 1.2f;
+
+    // 再生中に書き換わったSceneの配置値ではなく、起動時の配置値を保持する
+    [NonSerialized] public SlashPoseData sceneLeftStart;
+    [NonSerialized] public SlashPoseData sceneRightStart;
 }
 
 public class SwordAnimation : MonoBehaviour
 {
-    [Header("1回目に表示する子Image")]
-    [SerializeField] private Image leftSwordImage;
-    [SerializeField] private Image rightSwordImage;
-
-    [Header("2回目以降に表示する子Image")]
-    [SerializeField] private Image secondLeftSwordImage;
-    [SerializeField] private Image secondRightSwordImage;
-    [SerializeField] private bool useSecondImagesForThird = true;
-
-    [Header("衝突エフェクト")]
-    [SerializeField] private CanvasGroup sparkGroup;
-    [SerializeField] private RectTransform sparkTransform;
-    [SerializeField] private AudioSource audioSource;
-    [SerializeField] private AudioClip clashSE;
-
     [Header("1回目：左下と右上")]
-    [SerializeField] private SlashSettings firstSlash = new SlashSettings
-    {
-        leftStart = new SwordPose(-1200, -720, -20),
-        rightStart = new SwordPose(1200, 720, 20),
-        leftHit = new SwordPose(-350, -180, -45),
-        rightHit = new SwordPose(350, 180, 65),
-        sparkPosition = new Vector2(0, 0)
-    };
+    [SerializeField] private SlashRoundData firstSlash = new SlashRoundData();
 
     [Header("2回目：左上と右下")]
-    [SerializeField] private SlashSettings secondSlash = new SlashSettings
-    {
-        leftStart = new SwordPose(-1200, 720, 90),
-        rightStart = new SwordPose(1200, -720, -90),
-        leftHit = new SwordPose(-350, 180, 15),
-        rightHit = new SwordPose(350, -180, -15),
-        sparkPosition = new Vector2(0, 0)
-    };
+    [SerializeField] private SlashRoundData secondSlash = new SlashRoundData();
 
-    [Header("3回目：X字の衝突")]
-    [SerializeField] private SlashSettings thirdSlash = new SlashSettings
-    {
-        leftStart = new SwordPose(-1200, -650, 0),
-        rightStart = new SwordPose(1200, -650, 0),
-        leftHit = new SwordPose(-420, -280, 0),
-        rightHit = new SwordPose(420, -280, 0),
-        sparkPosition = new Vector2(0, 120),
-        hitStop = 0.08f
-    };
+    [Header("3回目：刀を交差させる")]
+    [SerializeField] private SlashRoundData thirdSlash = new SlashRoundData();
 
-    private Sequence sequence;
+    [Header("衝突時の演出（後から設定できる・空欄でも動作）")]
+    [SerializeField] private CanvasGroup sparkGroup;
+    [SerializeField] private AudioSource clashAudioSource;
+    [SerializeField] private AudioClip clashSound;
+
+    private Sequence mainSequence;
     private Sequence sparkSequence;
+
+    private void Awake()
+    {
+        // Scene上の位置を記録（子ImageのPivotは変更しない）
+        CacheScenePose(firstSlash);
+        CacheScenePose(secondSlash);
+        CacheScenePose(thirdSlash);
+    }
 
     private void Start()
     {
@@ -90,124 +93,149 @@ public class SwordAnimation : MonoBehaviour
 
     public void PlayAnimation()
     {
-        if (!ValidateReferences()) return;
+        if (!HasRequiredImages())
+        {
+            Debug.LogError("各斬撃のLeft Image / Right Imageに子Imageを設定してください。", this);
+            return;
+        }
 
-        sequence?.Kill();
+        mainSequence?.Kill();
         sparkSequence?.Kill();
-
-        // 再生のたびに最初の画像と姿勢に戻す
-        ChangeSwordImages(false);
-        SetSwordPose(leftSword, firstSlash.leftStart);
-        SetSwordPose(rightSword, firstSlash.rightStart);
+        HideAllSwords();
         if (sparkGroup != null) sparkGroup.alpha = 0f;
 
-        sequence = DOTween.Sequence();
-        sequence.Pause();
-        sequence.SetLink(gameObject);
-
-        AddSlash(sequence, firstSlash, 1);
-        AddSlash(sequence, secondSlash, 2);
-        AddSlash(sequence, thirdSlash, 3);
-
-        sequence.Play();
+        mainSequence = DOTween.Sequence();
+        mainSequence.Pause();
+        AddSlash(mainSequence, firstSlash, 1);
+        AddSlash(mainSequence, secondSlash, 2);
+        AddSlash(mainSequence, thirdSlash, 3);
+        mainSequence.AppendCallback(HideAllSwords);
+        mainSequence.Play();
     }
 
-    private void AddSlash(Sequence seq, SlashSettings slash, int number)
+    private void AddSlash(Sequence seq, SlashRoundData slash, int number)
     {
-        // 左右の画像を切り替える。Pivotは各子Imageの設定をそのまま使う
+        // この回に使う2本だけを表示して、指定した開始位置へ
         seq.AppendCallback(() =>
         {
-            bool useSecond = number == 2 || (number == 3 && useSecondImagesForThird);
-            ChangeSwordImages(useSecond);
-            SetSwordPose(leftSword, slash.leftStart);
-            SetSwordPose(rightSword, slash.rightStart);
+            HideAllSwords();
+            SlashPoseData leftStart = GetLeftStart(slash);
+            SlashPoseData rightStart = GetRightStart(slash);
+            ApplyPose(slash.leftImage, leftStart);
+            ApplyPose(slash.rightImage, rightStart);
+            slash.leftImage.gameObject.SetActive(true);
+            slash.rightImage.gameObject.SetActive(true);
             Debug.Log($"{number}回目の斬撃開始");
         });
 
         seq.AppendInterval(slash.readyTime);
 
-        // 親のRectTransformだけを移動・回転させる
-        seq.Append(leftSword.DOAnchorPos(slash.leftHit.position, slash.attackTime).SetEase(Ease.InCubic));
-        seq.Join(rightSword.DOAnchorPos(slash.rightHit.position, slash.attackTime).SetEase(Ease.InCubic));
-        seq.Join(leftSword.DOLocalRotate(new Vector3(0, 0, slash.leftHit.rotationZ), slash.attackTime).SetEase(Ease.InCubic));
-        seq.Join(rightSword.DOLocalRotate(new Vector3(0, 0, slash.rightHit.rotationZ), slash.attackTime).SetEase(Ease.InCubic));
+        // 移動と回転を同時に再生
+        float attack = Mathf.Max(0.01f, slash.attackTime);
+        seq.Append(slash.leftImage.DOAnchorPos(slash.leftHit.position, attack)
+            .SetEase(Ease.InCubic));
+        seq.Join(slash.rightImage.DOAnchorPos(slash.rightHit.position, attack)
+            .SetEase(Ease.InCubic));
+        seq.Join(slash.leftImage.DOLocalRotate(
+            new Vector3(0f, 0f, slash.leftHit.rotationZ), attack)
+            .SetEase(Ease.InCubic));
+        seq.Join(slash.rightImage.DOLocalRotate(
+            new Vector3(0f, 0f, slash.rightHit.rotationZ), attack)
+            .SetEase(Ease.InCubic));
 
-        seq.AppendCallback(() => PlayImpact(slash.sparkPosition, number));
+        // 衝突時の火花・効果音（未設定ならログのみ）
+        seq.AppendCallback(() => PlayImpact(slash, number));
         seq.AppendInterval(slash.hitStop);
 
-        seq.Append(leftSword.DOAnchorPos(slash.leftStart.position, slash.reboundTime).SetEase(Ease.OutCubic));
-        seq.Join(rightSword.DOAnchorPos(slash.rightStart.position, slash.reboundTime).SetEase(Ease.OutCubic));
-        seq.Join(leftSword.DOLocalRotate(new Vector3(0, 0, slash.leftStart.rotationZ), slash.reboundTime).SetEase(Ease.OutCubic));
-        seq.Join(rightSword.DOLocalRotate(new Vector3(0, 0, slash.rightStart.rotationZ), slash.reboundTime).SetEase(Ease.OutCubic));
+        SlashPoseData leftExit = slash.returnToStart ? GetLeftStart(slash) : slash.leftExit;
+        SlashPoseData rightExit = slash.returnToStart ? GetRightStart(slash) : slash.rightExit;
+        float rebound = Mathf.Max(0.01f, slash.reboundTime);
+        seq.Append(slash.leftImage.DOAnchorPos(leftExit.position, rebound)
+            .SetEase(Ease.OutCubic));
+        seq.Join(slash.rightImage.DOAnchorPos(rightExit.position, rebound)
+            .SetEase(Ease.OutCubic));
+        seq.Join(slash.leftImage.DOLocalRotate(
+            new Vector3(0f, 0f, leftExit.rotationZ), rebound)
+            .SetEase(Ease.OutCubic));
+        seq.Join(slash.rightImage.DOLocalRotate(
+            new Vector3(0f, 0f, rightExit.rotationZ), rebound)
+            .SetEase(Ease.OutCubic));
+
+        seq.AppendCallback(HideAllSwords);
         seq.AppendInterval(slash.nextDelay);
     }
 
-    private void ChangeSwordImages(bool useSecond)
+    private static void CacheScenePose(SlashRoundData slash)
     {
-        // Imageオブジェクトだけを切り替え、動かす親は常にActiveにしておく
-        leftSwordImage.gameObject.SetActive(!useSecond);
-        rightSwordImage.gameObject.SetActive(!useSecond);
-        secondLeftSwordImage.gameObject.SetActive(useSecond);
-        secondRightSwordImage.gameObject.SetActive(useSecond);
+        if (slash == null) return;
+        if (slash.leftImage != null)
+            slash.sceneLeftStart = SlashPoseData.FromRectTransform(slash.leftImage);
+        if (slash.rightImage != null)
+            slash.sceneRightStart = SlashPoseData.FromRectTransform(slash.rightImage);
     }
 
-    private void SetSwordPose(RectTransform sword, SwordPose pose)
+    private static SlashPoseData GetLeftStart(SlashRoundData slash)
     {
-        sword.anchoredPosition = pose.position;
-        sword.localRotation = Quaternion.Euler(0, 0, pose.rotationZ);
+        return slash.useSceneStart ? slash.sceneLeftStart : slash.leftStart;
     }
 
-    private void PlayImpact(Vector2 position, int number)
+    private static SlashPoseData GetRightStart(SlashRoundData slash)
     {
-        Debug.Log($"{number}回目の衝突！");
-        if (audioSource != null && clashSE != null)
-            audioSource.PlayOneShot(clashSE);
+        return slash.useSceneStart ? slash.sceneRightStart : slash.rightStart;
+    }
 
-        if (sparkGroup == null || sparkTransform == null) return;
+    private static void ApplyPose(RectTransform target, SlashPoseData pose)
+    {
+        target.anchoredPosition = pose.position;
+        target.localRotation = Quaternion.Euler(0f, 0f, pose.rotationZ);
+    }
+
+    private void HideAllSwords()
+    {
+        SetSwordActive(firstSlash, false);
+        SetSwordActive(secondSlash, false);
+        SetSwordActive(thirdSlash, false);
+    }
+
+    private static void SetSwordActive(SlashRoundData slash, bool active)
+    {
+        if (slash == null) return;
+        if (slash.leftImage != null) slash.leftImage.gameObject.SetActive(active);
+        if (slash.rightImage != null) slash.rightImage.gameObject.SetActive(active);
+    }
+
+    private bool HasRequiredImages()
+    {
+        return firstSlash != null && secondSlash != null && thirdSlash != null
+            && firstSlash.leftImage != null && firstSlash.rightImage != null
+            && secondSlash.leftImage != null && secondSlash.rightImage != null
+            && thirdSlash.leftImage != null && thirdSlash.rightImage != null;
+    }
+
+    private void PlayImpact(SlashRoundData slash, int number)
+    {
+        Debug.Log($"{number}回目：衝突！");
+        if (clashAudioSource != null && clashSound != null)
+            clashAudioSource.PlayOneShot(clashSound);
+
+        if (sparkGroup == null) return;
+        RectTransform sparkRect = sparkGroup.transform as RectTransform;
+        if (sparkRect == null) return;
 
         sparkSequence?.Kill();
-        sparkTransform.anchoredPosition = position;
-        sparkTransform.localScale = Vector3.one * 0.3f;
+        sparkRect.anchoredPosition = slash.sparkPosition;
+        sparkRect.localScale = Vector3.one * 0.3f;
         sparkGroup.alpha = 0f;
 
-        float scale = number == 3 ? 1.6f : 1.2f;
         sparkSequence = DOTween.Sequence();
-        sparkSequence.SetLink(sparkGroup.gameObject);
         sparkSequence.Append(sparkGroup.DOFade(1f, 0.03f));
-        sparkSequence.Join(sparkTransform.DOScale(scale, 0.1f));
+        sparkSequence.Join(sparkRect.DOScale(slash.sparkScale, 0.10f));
         sparkSequence.Append(sparkGroup.DOFade(0f, 0.15f));
-    }
-
-    private bool ValidateReferences()
-    {
-        if (leftSword == null || rightSword == null ||
-            leftSwordImage == null || rightSwordImage == null ||
-            secondLeftSwordImage == null || secondRightSwordImage == null)
-        {
-            Debug.LogError("刀のRectTransformと4つの子ImageをInspectorに設定してください。", this);
-            return false;
-        }
-
-        // 親自身をImageとして指定するとSetActive(false)で親まで消えるため禁止
-        if (!IsChildImage(leftSwordImage, leftSword) ||
-            !IsChildImage(secondLeftSwordImage, leftSword) ||
-            !IsChildImage(rightSwordImage, rightSword) ||
-            !IsChildImage(secondRightSwordImage, rightSword))
-        {
-            Debug.LogError("4つのImageは、左右それぞれの刀の親RectTransformの『子』にしてください。", this);
-            return false;
-        }
-        return true;
-    }
-
-    private bool IsChildImage(Image image, RectTransform root)
-    {
-        return image.transform != root && image.transform.IsChildOf(root);
     }
 
     private void OnDestroy()
     {
-        sequence?.Kill();
+        mainSequence?.Kill();
         sparkSequence?.Kill();
     }
 }

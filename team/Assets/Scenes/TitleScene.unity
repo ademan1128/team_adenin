@@ -457,7 +457,7 @@ GameObject:
   - component: {fileID: 282123293}
   - component: {fileID: 282123292}
   m_Layer: 5
-  m_Name: LeftSword (1)
+  m_Name: LeftSword_Hit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -607,7 +607,7 @@ GameObject:
   - component: {fileID: 494066243}
   - component: {fileID: 494066242}
   m_Layer: 5
-  m_Name: LeftSword (3)
+  m_Name: LeftSword_Hit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -943,37 +943,40 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c092d7db3a7f6524aa1443e26760f869, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SwordAnimation
-  leftSword: {fileID: 1463941790}
-  rightSword: {fileID: 975044095}
-  leftSwordImage: {fileID: 1463941791}
-  rightSwordImage: {fileID: 975044096}
-  secondLeftSwordImage: {fileID: 481214024}
-  secondRightSwordImage: {fileID: 1333879391}
-  useSecondImagesForThird: 0
-  sparkGroup: {fileID: 0}
-  sparkTransform: {fileID: 0}
-  audioSource: {fileID: 0}
-  clashSE: {fileID: 0}
   firstSlash:
+    leftImage: {fileID: 1463941790}
+    rightImage: {fileID: 975044095}
+    useSceneStart: 1
     leftStart:
       position: {x: -1902, y: 452}
       rotationZ: -570
     rightStart:
-      position: {x: 1937, y: 254}
+      position: {x: 2319, y: 127}
       rotationZ: -18
     leftHit:
-      position: {x: -1889, y: 556}
-      rotationZ: -512
+      position: {x: -1676, y: 336}
+      rotationZ: 210
     rightHit:
-      position: {x: 1768, y: 515}
-      rotationZ: 59
-    sparkPosition: {x: 0, y: 0}
+      position: {x: 1658, y: -361}
+      rotationZ: 30
+    returnToStart: 1
+    leftExit:
+      position: {x: 0, y: 0}
+      rotationZ: 0
+    rightExit:
+      position: {x: 0, y: 0}
+      rotationZ: 0
     readyTime: 0.08
     attackTime: 0.35
-    hitStop: 0.05
+    hitStop: 0.1
     reboundTime: 0.22
     nextDelay: 0.12
+    sparkPosition: {x: 0, y: 0}
+    sparkScale: 1.2
   secondSlash:
+    leftImage: {fileID: 481214023}
+    rightImage: {fileID: 1333879390}
+    useSceneStart: 1
     leftStart:
       position: {x: -2022, y: -340}
       rotationZ: 16
@@ -981,36 +984,58 @@ MonoBehaviour:
       position: {x: 2170, y: 540}
       rotationZ: 202
     leftHit:
-      position: {x: -1767, y: -216}
-      rotationZ: -34
+      position: {x: -1686, y: -378}
+      rotationZ: -30
     rightHit:
-      position: {x: 1692, y: -501}
-      rotationZ: 115
-    sparkPosition: {x: 0, y: 0}
+      position: {x: 1607, y: 367}
+      rotationZ: 150
+    returnToStart: 1
+    leftExit:
+      position: {x: 0, y: 0}
+      rotationZ: 0
+    rightExit:
+      position: {x: 0, y: 0}
+      rotationZ: 0
     readyTime: 0.08
     attackTime: 0.35
-    hitStop: 0.05
+    hitStop: 0.1
     reboundTime: 0.22
     nextDelay: 0.12
+    sparkPosition: {x: 0, y: 0}
+    sparkScale: 1.2
   thirdSlash:
+    leftImage: {fileID: 620347885}
+    rightImage: {fileID: 855959458}
+    useSceneStart: 1
     leftStart:
-      position: {x: -1200, y: -650}
+      position: {x: -2800, y: -1200}
       rotationZ: 0
     rightStart:
-      position: {x: 1200, y: -650}
+      position: {x: 2800, y: -1200}
       rotationZ: 0
     leftHit:
-      position: {x: -420, y: -280}
+      position: {x: -1300, y: -1200}
       rotationZ: 0
     rightHit:
-      position: {x: 420, y: -280}
+      position: {x: 1300, y: -1200}
       rotationZ: 0
-    sparkPosition: {x: 0, y: 120}
+    returnToStart: 1
+    leftExit:
+      position: {x: 0, y: 0}
+      rotationZ: 0
+    rightExit:
+      position: {x: 0, y: 0}
+      rotationZ: 0
     readyTime: 0.08
     attackTime: 0.35
-    hitStop: 0.08
+    hitStop: 0.2
     reboundTime: 0.22
     nextDelay: 0.12
+    sparkPosition: {x: 0, y: 120}
+    sparkScale: 1.2
+  sparkGroup: {fileID: 0}
+  clashAudioSource: {fileID: 0}
+  clashSound: {fileID: 0}
 --- !u!1 &1333879389
 GameObject:
   m_ObjectHideFlags: 0
@@ -1098,7 +1123,7 @@ GameObject:
   - component: {fileID: 1382395105}
   - component: {fileID: 1382395104}
   m_Layer: 5
-  m_Name: RightSword (1)
+  m_Name: RightSword_Hit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1173,7 +1198,7 @@ GameObject:
   - component: {fileID: 1430812615}
   - component: {fileID: 1430812614}
   m_Layer: 5
-  m_Name: RightSword (3)
+  m_Name: RightSword_Hit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1323,7 +1348,7 @@ GameObject:
   - component: {fileID: 1568288846}
   - component: {fileID: 1568288845}
   m_Layer: 5
-  m_Name: LeftSword (3)
+  m_Name: LeftSword_Hit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1398,7 +1423,7 @@ GameObject:
   - component: {fileID: 1731063216}
   - component: {fileID: 1731063215}
   m_Layer: 5
-  m_Name: RightSword (3)
+  m_Name: RightSword_Hit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
