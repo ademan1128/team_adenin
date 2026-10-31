@@ -12,6 +12,9 @@ public class MouseInputDetector : MonoBehaviour
     //スタミナ管理の参照
     [SerializeField] private StaminaController staminaController;
 
+    // 敵のパリィ判定の参照
+    [SerializeField] private EnemyParryReceiver enemyParryReceiver;
+
     //現在のマウス座標
     private Vector2 currentMousePosition;
 
@@ -95,7 +98,13 @@ public class MouseInputDetector : MonoBehaviour
             {
                 lastSwingTime = Time.time;
 
-                Debug.Log("パリィ受付開始！");
+                Debug.Log("マウススイング成功！");
+
+                // 敵にパリィ判定を要求
+                if (enemyParryReceiver.TryParry())
+                {
+                    Debug.Log("敵へのパリィ成功！");
+                }
             }
             else
             {

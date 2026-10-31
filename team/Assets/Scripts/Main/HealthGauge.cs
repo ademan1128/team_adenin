@@ -24,6 +24,13 @@ public class HealthGauge : MonoBehaviour
     // 現在のHP割合
     private float currentRate = 1f;
 
+    [Header("パリィ失敗時のダメージ")]
+    // 敵のパリィ判定スクリプト
+    [SerializeField] private EnemyParryReceiver enemyParryReceiver;
+
+    // パリィを見逃したときのHP減少割合
+    [SerializeField] private float missedParryDamageRate;
+
     private void Start()
     {
         SetGauge(1f);
@@ -51,6 +58,32 @@ public class HealthGauge : MonoBehaviour
         );
 
         currentRate = value;
+    }
+
+    // オブジェクトが有効になったとき
+    private void OnEnable()
+    {
+        if (enemyParryReceiver != null)
+        {
+            enemyParryReceiver.OnParryFailure += OnParryFailure;
+        }
+    }
+
+    // オブジェクトが無効になったとき
+    private void OnDisable()
+    {
+        if (enemyParryReceiver != null)
+        {
+            enemyParryReceiver.OnParryFailure -= OnParryFailure;
+        }
+    }
+
+    // パリィを見逃したとき
+    private void OnParryFailure()
+    {
+        TakeDamage(missedParryDamageRate);
+
+        Debug.Log("パリィ失敗！Playerがダメージを受けた！");
     }
 
     // ダメージを受ける
