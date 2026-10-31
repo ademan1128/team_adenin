@@ -9,6 +9,9 @@ public class MouseInputDetector : MonoBehaviour
     [Header("パリィ受付時間")]
     [SerializeField] private float parryWindow = 0.2f;
 
+    //スタミナ管理の参照
+    [SerializeField] private StaminaController staminaController;
+
     //現在のマウス座標
     private Vector2 currentMousePosition;
 
@@ -87,9 +90,17 @@ public class MouseInputDetector : MonoBehaviour
         // 振った瞬間だけログを表示
         if (IsSwinging && !wasSwinging)
         {
-            lastSwingTime = Time.time;
+            //スタミナを消費出来た場合のみパリィが出来るように
+            if (staminaController.ConsumeStamina())
+            {
+                lastSwingTime = Time.time;
 
-            Debug.Log("パリィ受付開始！");
+                Debug.Log("パリィ受付開始！");
+            }
+            else
+            {
+                Debug.Log("スタミナ不足");
+            }
         }
 
         //ここで前フレームのマウス座標と振ったかどうかを更新
