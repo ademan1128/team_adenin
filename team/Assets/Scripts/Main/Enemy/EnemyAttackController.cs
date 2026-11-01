@@ -3,12 +3,11 @@ using UnityEngine;
 public class EnemyAttackController : MonoBehaviour
 {
     [Header("攻撃設定")]
-    [SerializeField] private float attackInterval;
-
-    [SerializeField] private float attackDuration;
+    [SerializeField] private float attackInterval = 3f;
 
     [Header("参照")]
     [SerializeField] private EnemyParryReceiver parryReceiver;
+    [SerializeField] private Animator animator;
 
     // 攻撃までの経過時間
     private float timer;
@@ -18,17 +17,9 @@ public class EnemyAttackController : MonoBehaviour
 
     private void Update()
     {
-        // 攻撃中の処理
+        // 攻撃中は次の攻撃を開始しない
         if (isAttacking)
         {
-            timer += Time.deltaTime;
-
-            // 攻撃時間が終了したら受付を終了
-            if (timer >= attackDuration)
-            {
-                EndAttack();
-            }
-
             return;
         }
 
@@ -50,17 +41,27 @@ public class EnemyAttackController : MonoBehaviour
 
         Debug.Log("敵の攻撃開始！");
 
+        // 攻撃アニメーションを再生
+        animator.SetTrigger("Attack");
+    }
+
+    // Animation Event：パリィ受付開始
+    public void StartParryEvent()
+    {
         parryReceiver.StartParryWindow();
     }
 
-    // 攻撃終了
-    private void EndAttack()
+    // Animation Event：パリィ受付終了
+    public void EndParryEvent()
+    {
+        parryReceiver.EndParryWindow();
+    }
+
+    // Animation Event：攻撃アニメーション終了
+    public void FinishAttackEvent()
     {
         isAttacking = false;
-        timer = 0f;
 
         Debug.Log("敵の攻撃終了！");
-
-        parryReceiver.EndParryWindow();
     }
 }
