@@ -1803,6 +1803,8 @@ MonoBehaviour:
   attackInterval: 3
   parryReceiver: {fileID: 2058969591}
   animator: {fileID: 2058969594}
+  parryWindowDuration: 0
+  attackData: {fileID: 11400000, guid: b93f66ecbf740cc4ca67d04167291340, type: 2}
 --- !u!95 &2058969594
 Animator:
   serializedVersion: 7

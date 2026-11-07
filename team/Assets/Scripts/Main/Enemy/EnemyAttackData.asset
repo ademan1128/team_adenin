@@ -9,13 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5bec7432e8dbfd64d996bb650d2d5431, type: 3}
+  m_Script: {fileID: 11500000, guid: 2b816e7691c1e7240bec065b937d3f0a, type: 3}
   m_Name: EnemyAttackData
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyAttackManager
-  AttackName: 
-  description: 
-  icon: {fileID: 0}
-  animatorController: {fileID: 9100000, guid: 3a95fc736683fb146be0e9e88e3ec90c, type: 2}
-  weak: 0
-  medium: 0
-  strength: 0
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyAttackData
+  parryWindowFrames: 9
+  frameRate: 60

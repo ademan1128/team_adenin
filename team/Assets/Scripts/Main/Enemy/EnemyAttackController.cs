@@ -1,13 +1,18 @@
 using UnityEngine;
+using System.Collections;
 
 public class EnemyAttackController : MonoBehaviour
 {
     [Header("攻撃設定")]
-    [SerializeField] private float attackInterval = 3f;
+    [SerializeField] private float attackInterval;
 
     [Header("参照")]
     [SerializeField] private EnemyParryReceiver parryReceiver;
     [SerializeField] private Animator animator;
+
+    [Header("攻撃データ")]
+    [SerializeField] private EnemyAttackData attackData;
+
 
     // 攻撃までの経過時間
     private float timer;
@@ -39,21 +44,40 @@ public class EnemyAttackController : MonoBehaviour
         isAttacking = true;
         timer = 0f;
 
-        Debug.Log("敵の攻撃開始！");
+        // 攻撃方法をランダムに選択
+        int randomAttack = Random.Range(0, 1);
 
-        // 攻撃アニメーションを再生
-        animator.SetTrigger("Attack");
+        switch (randomAttack)
+        {
+            case 0:
+                animator.SetTrigger("Attack");
+                break;
+
+            case 1:
+                animator.SetTrigger("PounceAttack");
+                break;
+        }
+
+        Debug.Log("敵の攻撃開始！");
     }
 
     // Animation Event：パリィ受付開始
     public void StartParryEvent()
     {
         parryReceiver.StartParryWindow();
+
+        // 指定時間後にパリィ受付を終了する
+        StartCoroutine(EndParryAfterTime());
     }
 
-    // Animation Event：パリィ受付終了
-    public void EndParryEvent()
+    // パリィ受付時間を管理
+    private IEnumerator EndParryAfterTime()
     {
+        // フレーム数を秒数に変換
+        float duration = attackData.parryWindowFrames_1 / attackData.frameRate;
+
+        yield return new WaitForSeconds(duration);
+
         parryReceiver.EndParryWindow();
     }
 
