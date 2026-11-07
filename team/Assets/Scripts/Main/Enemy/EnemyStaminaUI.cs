@@ -22,6 +22,8 @@ public class EnemyStaminaUI : MonoBehaviour
     // スタミナゲージのアニメーションを管理するTween
     private Tween staminaTween;
 
+    //デバッグダメージ
+    public int debugdamage = 5;
 
     // 初期化処理
     private void Start()
