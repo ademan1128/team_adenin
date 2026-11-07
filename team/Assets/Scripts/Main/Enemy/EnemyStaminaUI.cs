@@ -10,63 +10,88 @@ public class EnemyStaminaUI : MonoBehaviour
     // スタミナを表示するSlider
     [SerializeField] private Slider staminaSlider;
 
-    // 敵のスタミナを管理しているスクリプト
+    // 敵のスタミナを管理するスクリプト
     [SerializeField] private EnemyStaminaController staminaController;
+
+    // 段階を表示する〇のImage
+    [SerializeField] private Image[] phaseIcons;
 
 
     [Header("アニメーション")]
 
-    // スタミナゲージが変動するときにかかる時間
+    // ゲージのアニメーション時間
     [SerializeField] private float animationDuration = 0.2f;
 
-    // スタミナゲージのアニメーションを管理するTween
+    // ゲージのアニメーションを管理するTween
     private Tween staminaTween;
 
-    //デバッグダメージ
-    public int debugdamage = 5;
 
-    // 初期化処理
     private void Start()
     {
-        // 現在のスタミナ割合をSliderに反映する
+        // 現在のスタミナ割合をSliderに反映
         staminaSlider.value = staminaController.StaminaNormalized;
-    }
 
+        // 現在の段階に合わせて〇を表示
+        UpdatePhaseUI();
 
-    // 毎フレーム実行
-    private void Update()
-    {
-        // スタミナゲージの更新処理を呼び出す
-        UpdateStaminaUI();
+        // スタミナ変更イベントを登録
+        staminaController.OnStaminaChanged += UpdateStaminaUI;
+
+        // 段階変更イベントを登録
+        staminaController.OnPhaseChanged += OnPhaseChanged;
     }
 
 
     // スタミナゲージの更新
-    private void UpdateStaminaUI()
+    private void UpdateStaminaUI(float stamina)
     {
         // 現在のスタミナ割合を取得
         float targetValue = staminaController.StaminaNormalized;
 
-        // Sliderの値と現在のスタミナ割合がほぼ同じなら何もしない
-        if (Mathf.Approximately(staminaSlider.value, targetValue))
-        {
-            return;
-        }
-
-        // 前回のアニメーションが残っていたら停止する
+        // 前回のTweenを停止
         staminaTween?.Kill();
 
-        // DOTweenを使ってSliderの値を滑らかに変化させる
+        // Sliderを滑らかに変化させる
         staminaTween = staminaSlider
             .DOValue(targetValue, animationDuration)
             .SetEase(Ease.OutQuad);
     }
 
 
-    // このオブジェクトが破棄されるときに実行
+    // 段階変更時の処理
+    private void OnPhaseChanged(int phase)
+    {
+        // 〇の表示を更新
+        UpdatePhaseUI();
+    }
+
+
+
+    // 〇の表示更新処理
+    private void UpdatePhaseUI()
+    {
+        // 残り段階数を取得
+        int remainingPhases = staminaController.RemainingPhases;
+
+        // すべての〇を順番に確認
+        for (int i = 0; i < phaseIcons.Length; i++)
+        {
+            // 残り段階数に応じて表示を切り替える
+            phaseIcons[i].enabled = i < remainingPhases;
+        }
+    }
+
     private void OnDestroy()
     {
-        // 再生中のアニメーションを停止する
+        // Tweenを停止
         staminaTween?.Kill();
+
+        // イベント登録を解除
+        if (staminaController != null)
+        {
+            staminaController.OnStaminaChanged -= UpdateStaminaUI;
+
+            staminaController.OnPhaseChanged -= OnPhaseChanged;
+        }
     }
 }
