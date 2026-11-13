@@ -15,3 +15,4 @@ MonoBehaviour:
   frameRate: 60
   attackParryFrames: 13
   pounceAttackParryFrames: 16
+  downAttackParryFrames: 7

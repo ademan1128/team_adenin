@@ -1750,7 +1750,7 @@ Transform:
   m_GameObject: {fileID: 2058969587}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 6.05, y: 0, z: 0}
+  m_LocalPosition: {x: 3.6, y: 2.23, z: 0}
   m_LocalScale: {x: 0.17, y: 0.17, z: 0.17}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -1803,7 +1803,6 @@ MonoBehaviour:
   attackInterval: 3
   parryReceiver: {fileID: 2058969591}
   animator: {fileID: 2058969594}
-  parryWindowDuration: 0
   attackData: {fileID: 11400000, guid: b93f66ecbf740cc4ca67d04167291340, type: 2}
 --- !u!95 &2058969594
 Animator:

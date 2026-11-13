@@ -47,7 +47,7 @@ public class EnemyAttackController : MonoBehaviour
         timer = 0f;
 
         // UŒ‚•û–@‚ğƒ‰ƒ“ƒ_ƒ€‚É‘I‘ğ
-        int randomAttack = Random.Range(0, 2);
+        int randomAttack = Random.Range(0, 3);
 
         switch (randomAttack)
         {
@@ -59,6 +59,11 @@ public class EnemyAttackController : MonoBehaviour
             case 1:
                 animator.SetTrigger("PounceAttack");
                 currentParryFrames = attackData.pounceAttackParryFrames;
+                break;
+
+            case 2:
+                animator.SetTrigger("DownAttack");
+                currentParryFrames = attackData.downAttackParryFrames;
                 break;
         }
 
