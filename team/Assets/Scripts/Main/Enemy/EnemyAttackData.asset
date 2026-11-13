@@ -12,5 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b816e7691c1e7240bec065b937d3f0a, type: 3}
   m_Name: EnemyAttackData
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAttackData
-  parryWindowFrames: 9
   frameRate: 60
+  attackParryFrames: 13
+  pounceAttackParryFrames: 16

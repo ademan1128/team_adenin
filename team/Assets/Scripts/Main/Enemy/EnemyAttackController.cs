@@ -13,6 +13,8 @@ public class EnemyAttackController : MonoBehaviour
     [Header("攻撃データ")]
     [SerializeField] private EnemyAttackData attackData;
 
+    // 現在の攻撃のパリィ受付フレーム数
+    private int currentParryFrames;
 
     // 攻撃までの経過時間
     private float timer;
@@ -45,16 +47,18 @@ public class EnemyAttackController : MonoBehaviour
         timer = 0f;
 
         // 攻撃方法をランダムに選択
-        int randomAttack = Random.Range(0, 1);
+        int randomAttack = Random.Range(0, 2);
 
         switch (randomAttack)
         {
             case 0:
                 animator.SetTrigger("Attack");
+                currentParryFrames = attackData.attackParryFrames;
                 break;
 
             case 1:
                 animator.SetTrigger("PounceAttack");
+                currentParryFrames = attackData.pounceAttackParryFrames;
                 break;
         }
 
@@ -74,7 +78,7 @@ public class EnemyAttackController : MonoBehaviour
     private IEnumerator EndParryAfterTime()
     {
         // フレーム数を秒数に変換
-        float duration = attackData.parryWindowFrames_1 / attackData.frameRate;
+        float duration = currentParryFrames / attackData.frameRate;
 
         yield return new WaitForSeconds(duration);
 
