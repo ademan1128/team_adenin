@@ -11,4 +11,7 @@ public class EnemyAttackData : ScriptableObject
 
     [Header("”ò‚Ñ‚©‚©‚èUŒ‚")]
     public int pounceAttackParryFrames;
+
+    [Header("‰º’iUŒ‚")]
+    public int downAttackParryFrames;
 }
