@@ -85,6 +85,9 @@ public class EnemyAttackController : MonoBehaviour
         // フレーム数を秒数に変換
         float duration = currentParryFrames / attackData.frameRate;
 
+        // アニメーション速度に合わせて受付時間も延長
+        duration /= animator.speed;
+
         yield return new WaitForSeconds(duration);
 
         parryReceiver.EndParryWindow();
@@ -96,5 +99,28 @@ public class EnemyAttackController : MonoBehaviour
         isAttacking = false;
 
         Debug.Log("敵の攻撃終了！");
+    }
+
+    // 敵のアニメーションをスローにする
+    public void SetSlowMotion(bool isSlow)
+    {
+        if (isSlow)
+        {
+            animator.speed = 0.5f;
+        }
+        else
+        {
+            animator.speed = 1.0f;
+        }
+    }
+    [ContextMenu("Test/Start Slow")]
+    private void TestStartSlow()
+    {
+        SetSlowMotion(true);  // スロー開始
+    }
+    [ContextMenu("Test/Finish Slow")]
+    private void TestFinishSlow()
+    {
+        SetSlowMotion(false); // スロー終了
     }
 }
