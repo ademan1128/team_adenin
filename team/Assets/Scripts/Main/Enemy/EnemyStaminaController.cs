@@ -1,8 +1,10 @@
-
 using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
+using System.Collections;
+
 
 public class EnemyStaminaController : MonoBehaviour
 {
@@ -58,6 +60,14 @@ public class EnemyStaminaController : MonoBehaviour
     // 最大段階数
     public int MaxPhases => maxPhases;
 
+    [Header("撃破後のシーン設定")]
+    [SerializeField] private string nextScene = "ClearScene";
+
+    // 撃破後の待機時間
+    [SerializeField] private float deathDelay = 3f;
+
+    // 二重実行防止
+    private bool isDead = false;
 
     // スタミナが変化したときに通知するイベント
     public event Action<float> OnStaminaChanged;
@@ -239,9 +249,30 @@ public class EnemyStaminaController : MonoBehaviour
     // 敵の撃破処理
     private void Die()
     {
+        // 二重実行を防止
+        if (isDead)
+        {
+            return;
+        }
+
+        isDead = true;
+
         // 撃破イベントを通知
         OnDeath?.Invoke();
 
         Debug.Log("敵を撃破！");
+
+        // コルーチン開始
+        StartCoroutine(LoadClearScene());
+    }
+
+    // 撃破後のシーン移動
+    private IEnumerator LoadClearScene()
+    {
+        // 指定した秒数だけ待機
+        yield return new WaitForSeconds(deathDelay);
+
+        // 指定したシーンへ移動
+        SceneManager.LoadScene("ClearScene");
     }
 }
