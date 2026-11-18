@@ -9,6 +9,12 @@ public class MouseInputDetector : MonoBehaviour
     [Header("パリィ受付時間")]
     [SerializeField] private float parryWindow = 0.2f;
 
+    [Header("スイング再判定までの時間")]
+    [SerializeField] private float swingCooldown = 0.2f;
+
+    // 次にスイングできる時刻
+    private float nextSwingTime;
+
     //スタミナ管理の参照
     [SerializeField] private StaminaController staminaController;
 
@@ -49,6 +55,13 @@ public class MouseInputDetector : MonoBehaviour
     // マウスを振ってから受付時間内か判定
     public bool IsParryWindowActive =>Time.time - lastSwingTime <= parryWindow;
 
+    // SP管理の参照
+    [SerializeField]
+    private SpecialMoveController specialMoveController;
+
+    [Header("デバック専用")]
+    [SerializeField] private GameObject debugbox;
+
     private void Start()
     {
         if (Mouse.current == null)
@@ -68,6 +81,12 @@ public class MouseInputDetector : MonoBehaviour
         {
             return;
         }
+
+        if (Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            specialMoveController.TryActivateSpecialMove();
+        }
+
         // 前フレームのマウス座標を保存
         currentMousePosition = Mouse.current.position.ReadValue();
 
@@ -91,9 +110,11 @@ public class MouseInputDetector : MonoBehaviour
         IsSwinging = mouseSpeed >= swingSpeedThreshold;
 
         // 振った瞬間だけログを表示
-        if (IsSwinging && !wasSwinging)
+        if (IsSwinging && !wasSwinging && Time.time >= nextSwingTime)
         {
-            //スタミナを消費出来た場合のみパリィが出来るように
+            nextSwingTime = Time.time + swingCooldown;
+
+            // スタミナを消費できた場合のみパリィ判定
             if (staminaController.ConsumeStamina())
             {
                 lastSwingTime = Time.time;
@@ -112,8 +133,12 @@ public class MouseInputDetector : MonoBehaviour
             }
         }
 
+
         //ここで前フレームのマウス座標と振ったかどうかを更新
         previousMousePosition = currentMousePosition;
         wasSwinging = IsSwinging;
+
+        // デバッグ用のボックスの表示を更新
+        debugbox.SetActive(IsParryWindowActive);
     }
 }

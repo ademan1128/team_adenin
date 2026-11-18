@@ -22,6 +22,13 @@ public class EnemyAttackController : MonoBehaviour
     // 現在攻撃中か
     private bool isAttacking;
 
+    private float normalAnimatorSpeed;
+
+    private void Awake()
+    {
+        normalAnimatorSpeed = animator.speed;
+    }
+
     private void Update()
     {
         // 攻撃中は次の攻撃を開始しない
@@ -102,15 +109,15 @@ public class EnemyAttackController : MonoBehaviour
     }
 
     // 敵のアニメーションをスローにする
-    public void SetSlowMotion(bool isSlow)
+    public void SetSlowMotion(bool isSlow, float slowSpeed = 0.5f)
     {
         if (isSlow)
         {
-            animator.speed = 0.5f;
+            animator.speed = slowSpeed;
         }
         else
         {
-            animator.speed = 1.0f;
+            animator.speed = normalAnimatorSpeed;
         }
     }
     [ContextMenu("Test/Start Slow")]
