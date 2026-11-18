@@ -1,4 +1,3 @@
-
 using UnityEngine;
 
 public class ParryComboManager : MonoBehaviour
@@ -10,13 +9,11 @@ public class ParryComboManager : MonoBehaviour
 
 
     [Header("コンボ設定")]
-
     // 現在の連続成功回数
     public int ComboCount { get; private set; }
 
 
     [Header("必殺ゲージ設定")]
-
     // 必殺ゲージの最大値
     [SerializeField] private float maxSpecialGauge = 100f;
 
@@ -29,6 +26,8 @@ public class ParryComboManager : MonoBehaviour
     // 必殺ゲージの割合（UI表示用）
     public float SpecialGaugeNormalized => SpecialGauge / maxSpecialGauge;
 
+    // ゲージ消費中かどうか
+    public bool IsConsumingGauge { get; private set; }
 
     // オブジェクトが有効になったとき
     private void OnEnable()
@@ -63,7 +62,7 @@ public class ParryComboManager : MonoBehaviour
         Debug.Log("パリィコンボ：" + ComboCount);
 
         // 2連続成功から必殺ゲージを増やす
-        if (ComboCount >= 2)
+        if (ComboCount >= 2 && !IsConsumingGauge)
         {
             AddSpecialGauge();
         }
@@ -83,6 +82,30 @@ public class ParryComboManager : MonoBehaviour
         Debug.Log("必殺ゲージ：" + SpecialGauge);
     }
 
+    // 必殺技用：ゲージ消費を開始できるか確認
+    public bool TryStartGaugeConsumption()
+    {
+        if (IsConsumingGauge || SpecialGauge < maxSpecialGauge)
+        {
+            return false;
+        }
+
+        IsConsumingGauge = true;
+        return true;
+    }
+
+    // ゲージを更新
+    public void SetSpecialGauge(float value)
+    {
+        SpecialGauge = Mathf.Clamp(value, 0f, maxSpecialGauge);
+    }
+
+    // ゲージ消費終了
+    public void FinishGaugeConsumption()
+    {
+        SpecialGauge = 0f;
+        IsConsumingGauge = false;
+    }
 
     // パリィ失敗時
     private void OnParryFailure()
