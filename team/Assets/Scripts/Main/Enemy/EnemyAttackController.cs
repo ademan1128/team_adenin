@@ -13,6 +13,11 @@ public class EnemyAttackController : MonoBehaviour
     [Header("攻撃データ")]
     [SerializeField] private EnemyAttackData attackData;
 
+    [Header("攻撃エフェクト")]
+    [SerializeField] private GameObject attackEffectPrefab;
+    [SerializeField] private Transform effectSpawnPoint;
+    [SerializeField] private float effectDuration;
+
     // 現在の攻撃のパリィ受付フレーム数
     private int currentParryFrames;
 
@@ -52,6 +57,9 @@ public class EnemyAttackController : MonoBehaviour
     {
         isAttacking = true;
         timer = 0f;
+
+        // 攻撃エフェクトを表示
+        SpawnAttackEffect();
 
         // 攻撃方法をランダムに選択
         int randomAttack = Random.Range(0, 3);
@@ -129,5 +137,19 @@ public class EnemyAttackController : MonoBehaviour
     private void TestFinishSlow()
     {
         SetSlowMotion(false); // スロー終了
+    }
+
+    // 攻撃エフェクトを生成する
+    private void SpawnAttackEffect()
+    {
+        // エフェクトを生成
+        GameObject effect = Instantiate(
+            attackEffectPrefab,
+            effectSpawnPoint.position,
+            effectSpawnPoint.rotation
+        );
+
+        // 指定時間後に削除
+        Destroy(effect, effectDuration);
     }
 }
