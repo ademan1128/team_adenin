@@ -34,6 +34,20 @@ public class TitleMenuController : MonoBehaviour
     [SerializeField] private GameObject difficultyPanel;
     [SerializeField] private string difficultySceneName;
 
+    [Header("難易度選択画面の演出対象")]
+    [SerializeField] private RectTransform difficultyButtons;
+    [SerializeField] private RectTransform difficultyDescriptionPanel;
+
+    [Header("難易度選択画面の演出設定")]
+    [SerializeField, Min(0f)]
+    private float difficultySlideDuration = 0.7f;
+
+    [SerializeField, Min(0f)]
+    private float difficultySlideDistance = 1200f;
+
+    [SerializeField, Min(0f)]
+    private float difficultyTransitionDelay = 0.2f;
+
     [Header("設定ウィンドウ")]
     [SerializeField] private GameObject settingsPanel;
 
@@ -309,10 +323,21 @@ public class TitleMenuController : MonoBehaviour
     // パネルを表示する
     private void OpenPanel(GameObject panel)
     {
-        // 設定画面の場合は出現演出を再生
+        // 設定画面の出現演出
         if (panel != null && panel == settingsPanel)
         {
-            StartCoroutine(AnimateSettingsPanel(true));
+            StartCoroutine(
+                AnimateSettingsPanel(true)
+            );
+            return;
+        }
+
+        // 難易度選択画面の出現演出
+        if (panel != null && panel == difficultyPanel)
+        {
+            StartCoroutine(
+                AnimateDifficultyPanel(true)
+            );
             return;
         }
 
@@ -372,14 +397,41 @@ public class TitleMenuController : MonoBehaviour
         if (!canReturnToMenu)
             return;
 
+        // 難易度決定後はタイトルに戻れない
+        if (currentSelection == startButton &&
+            difficultyPanel != null)
+        {
+            DifficultySelectionController selection =
+                difficultyPanel.GetComponent<
+                    DifficultySelectionController>();
+
+            if (selection != null &&
+                selection.SelectedDifficulty.HasValue)
+            {
+                return;
+            }
+        }
+
         // 連続クリックを防止
         canReturnToMenu = false;
 
-        // 設定画面の場合は退場演出を再生
+        // 設定画面の退場演出
         if (currentSelection == settingsButton &&
             settingsPanel != null)
         {
-            StartCoroutine(AnimateSettingsPanel(false));
+            StartCoroutine(
+                AnimateSettingsPanel(false)
+            );
+            return;
+        }
+
+        // 難易度選択画面の退場演出
+        if (currentSelection == startButton &&
+            difficultyPanel != null)
+        {
+            StartCoroutine(
+                AnimateDifficultyPanel(false)
+            );
             return;
         }
 
@@ -682,6 +734,202 @@ public class TitleMenuController : MonoBehaviour
 
             Debug.Log("設定画面の退場完了");
 
+            RestoreMenu();
+        }
+    }
+
+    private IEnumerator AnimateDifficultyPanel(bool opening)
+    {
+        canReturnToMenu = false;
+
+        CanvasGroup group =
+            difficultyPanel.GetComponent<CanvasGroup>();
+
+        // 必要な参照が設定されているか確認
+        if (group == null ||
+            difficultyButtons == null ||
+            difficultyDescriptionPanel == null)
+        {
+            Debug.LogWarning(
+                "難易度選択画面の演出対象が未設定です",
+                this
+            );
+
+            // 設定漏れがあっても操作不能にしない
+            if (opening)
+            {
+                SetPanelActive(difficultyPanel, true);
+
+                if (group != null)
+                {
+                    group.alpha = 1f;
+                    group.interactable = true;
+                    group.blocksRaycasts = true;
+                }
+
+                canReturnToMenu = true;
+            }
+            else
+            {
+                RestoreMenu();
+            }
+
+            yield break;
+        }
+
+        // 通常表示位置を記録
+        Vector2 buttonsHome =
+            difficultyButtons.anchoredPosition;
+
+        Vector2 descriptionHome =
+            difficultyDescriptionPanel.anchoredPosition;
+
+        // 左右の画面外待機位置
+        Vector2 buttonsHidden =
+            buttonsHome +
+            Vector2.left * difficultySlideDistance;
+
+        Vector2 descriptionHidden =
+            descriptionHome +
+            Vector2.right * difficultySlideDistance;
+
+        // 演出中は操作不可
+        group.interactable = false;
+        group.blocksRaycasts = false;
+
+        if (opening)
+        {
+            // 出現前の初期状態
+            difficultyButtons.anchoredPosition =
+                buttonsHidden;
+
+            difficultyDescriptionPanel.anchoredPosition =
+                descriptionHidden;
+
+            group.alpha = 0f;
+
+            // タイトルUI消失後の待機
+            if (difficultyTransitionDelay > 0f)
+            {
+                yield return new WaitForSecondsRealtime(
+                    difficultyTransitionDelay
+                );
+            }
+
+            // 難易度選択画面を有効化
+            SetPanelActive(difficultyPanel, true);
+
+            // OnEnableによる入力有効化を上書き
+            group.interactable = false;
+            group.blocksRaycasts = false;
+        }
+
+        // アニメーション開始・終了位置
+        Vector2 buttonsFrom = opening
+            ? buttonsHidden
+            : buttonsHome;
+
+        Vector2 buttonsTo = opening
+            ? buttonsHome
+            : buttonsHidden;
+
+        Vector2 descriptionFrom = opening
+            ? descriptionHidden
+            : descriptionHome;
+
+        Vector2 descriptionTo = opening
+            ? descriptionHome
+            : descriptionHidden;
+
+        float fromAlpha = opening ? 0f : 1f;
+        float toAlpha = opening ? 1f : 0f;
+
+        float elapsedTime = 0f;
+
+        float animationDuration =
+            Mathf.Max(0f, difficultySlideDuration);
+
+        // スライドとフェードを同時に再生
+        while (elapsedTime < animationDuration)
+        {
+            float t = Mathf.Clamp01(
+                elapsedTime / animationDuration
+            );
+
+            // 出現時は減速、退場時は加速
+            float easedT = opening
+                ? 1f - Mathf.Pow(1f - t, 3f)
+                : Mathf.Pow(t, 3f);
+
+            // 難易度ボタンの移動
+            difficultyButtons.anchoredPosition =
+                Vector2.Lerp(
+                    buttonsFrom,
+                    buttonsTo,
+                    easedT
+                );
+
+            // 説明ウィンドウの移動
+            difficultyDescriptionPanel.anchoredPosition =
+                Vector2.Lerp(
+                    descriptionFrom,
+                    descriptionTo,
+                    easedT
+                );
+
+            // 画面全体のフェード
+            group.alpha = Mathf.Lerp(
+                fromAlpha,
+                toAlpha,
+                t
+            );
+
+            yield return null;
+
+            elapsedTime += Time.unscaledDeltaTime;
+        }
+
+        // 最終位置と透明度を確定
+        difficultyButtons.anchoredPosition =
+            buttonsTo;
+
+        difficultyDescriptionPanel.anchoredPosition =
+            descriptionTo;
+
+        group.alpha = toAlpha;
+
+        if (opening)
+        {
+            // 出現完了後に操作受付開始
+            group.interactable = true;
+            group.blocksRaycasts = true;
+
+            canReturnToMenu = true;
+
+            Debug.Log("難易度選択画面の表示完了");
+        }
+        else
+        {
+            // 退場完了後に画面を無効化
+            SetPanelActive(difficultyPanel, false);
+
+            // 次回表示に備えて元の位置へ戻す
+            difficultyButtons.anchoredPosition =
+                buttonsHome;
+
+            difficultyDescriptionPanel.anchoredPosition =
+                descriptionHome;
+
+            if (difficultyTransitionDelay > 0f)
+            {
+                yield return new WaitForSecondsRealtime(
+                    difficultyTransitionDelay
+                );
+            }
+
+            Debug.Log("難易度選択画面の退場完了");
+
+            // タイトル画面を復元
             RestoreMenu();
         }
     }
