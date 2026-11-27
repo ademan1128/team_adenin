@@ -75,15 +75,30 @@ public class SwordAnimation : MonoBehaviour
     [SerializeField] private AudioSource clashAudioSource;
     [SerializeField] private AudioClip clashSound;
 
+    [Header("タイトルロゴ出現演出")]
+    [SerializeField] private CanvasGroup titleLogoGroup;
+
+    [SerializeField, Min(0.01f)]
+    private float logoFadeDuration = 0.5f;
+
+    [Header("タイトルメニュー連携")]
+    [SerializeField] private TitleMenuController titleMenuController;
+
     private Sequence mainSequence;
     private Sequence sparkSequence;
 
     private void Awake()
     {
-        // Scene上の位置を記録（子ImageのPivotは変更しない）
+        // Scene上の刀の位置を記録
         CacheScenePose(firstSlash);
         CacheScenePose(secondSlash);
         CacheScenePose(thirdSlash);
+
+        // タイトルロゴを初期状態では非表示にする
+        if (titleLogoGroup != null)
+        {
+            titleLogoGroup.alpha = 0f;
+        }
     }
 
     private void Start()
@@ -95,21 +110,58 @@ public class SwordAnimation : MonoBehaviour
     {
         if (!HasRequiredImages())
         {
-            Debug.LogError("各斬撃のLeft Image / Right Imageに子Imageを設定してください。", this);
+            Debug.LogError(
+                "各斬撃のLeft Image / Right Imageに子Imageを設定してください。",
+                this
+            );
             return;
         }
 
         mainSequence?.Kill();
         sparkSequence?.Kill();
+
         HideAllSwords();
-        if (sparkGroup != null) sparkGroup.alpha = 0f;
+
+        if (sparkGroup != null)
+            sparkGroup.alpha = 0f;
+
+        if (titleLogoGroup != null)
+            titleLogoGroup.alpha = 0f;
 
         mainSequence = DOTween.Sequence();
         mainSequence.Pause();
+
+        // 既存の3回の斬撃演出
         AddSlash(mainSequence, firstSlash, 1);
         AddSlash(mainSequence, secondSlash, 2);
         AddSlash(mainSequence, thirdSlash, 3);
+
+        // すべての刀を非表示にする
         mainSequence.AppendCallback(HideAllSwords);
+
+        // タイトルロゴをフェードイン
+        if (titleLogoGroup != null)
+        {
+            mainSequence.Append(
+                titleLogoGroup.DOFade(
+                    1f,
+                    Mathf.Max(0.01f, logoFadeDuration)
+                )
+                .SetEase(Ease.OutQuad)
+            );
+        }
+
+        // タイトルロゴの出現完了後にボタンを表示
+        mainSequence.OnComplete(() =>
+        {
+            Debug.Log("タイトルロゴ出現演出完了");
+
+            if (titleMenuController != null)
+            {
+                titleMenuController.ShowMenu();
+            }
+        });
+
         mainSequence.Play();
     }
 
