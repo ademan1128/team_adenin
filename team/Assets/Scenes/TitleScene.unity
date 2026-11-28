@@ -6522,7 +6522,7 @@ MonoBehaviour:
   settingsSlideDistance: 2200
   settingsTransitionDelay: 0.2
   exitConfirmPanel: {fileID: 0}
-  quitWithoutConfirmation: 0
+  quitWithoutConfirmation: 1
   waitForSEBeforeLeaving: 1
 --- !u!4 &1510833779
 Transform:
@@ -7101,7 +7101,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1706692166
 RectTransform:
   m_ObjectHideFlags: 0
@@ -7231,9 +7231,9 @@ MonoBehaviour:
   selectSE: {fileID: 0}
   seVolume: 0.8
   tutorialSceneName: TutorialScene
-  easySceneName: Test Scene
-  normalSceneName: Test Scene
-  hardSceneName: Test Scene
+  easySceneName: Test Scene 4
+  normalSceneName: Test Scene 4
+  hardSceneName: Test Scene 4
   sceneFadeGroup: {fileID: 2011277624}
   sceneFadeDuration: 0.4
 --- !u!1 &1722128876

@@ -15,6 +15,18 @@ EditorBuildSettings:
     path: Assets/Scenes/Test Scene.unity
     guid: 9f3528c0a5dd4c044824e6dcc0863096
   - enabled: 1
+    path: Assets/Scenes/Test Scene 1.unity
+    guid: 60e9e0e04e5e0d3438bf80cbe90e4867
+  - enabled: 1
+    path: Assets/Scenes/Test Scene 2.unity
+    guid: 1e597a0181b4639418ab2a046e507b73
+  - enabled: 1
+    path: Assets/Scenes/Test Scene 3.unity
+    guid: 52b49859d6f610f4588c9a90f88876e7
+  - enabled: 1
+    path: Assets/Scenes/Test Scene 4.unity
+    guid: 0f38620705d58c74088fd475b5929eec
+  - enabled: 1
     path: Assets/Scenes/ClearScene.unity
     guid: b85966210d75aed45ad92eb7ffeff3a9
   - enabled: 1
