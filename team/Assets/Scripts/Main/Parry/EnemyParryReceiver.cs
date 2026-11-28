@@ -6,6 +6,9 @@ public class EnemyParryReceiver : MonoBehaviour
     // 敵のスタミナ管理
     [SerializeField] private EnemyStaminaController enemyStamina;
 
+    [Header("フェーズ管理")]
+    [SerializeField] private PhaseManager phaseManager;
+
     // パリィ受付中か
     public bool CanBeParried { get; private set; }
 
@@ -17,6 +20,15 @@ public class EnemyParryReceiver : MonoBehaviour
 
     // パリィ失敗時の通知
     public event Action OnParryFailure;
+
+
+    private void Awake()
+    {
+        if (phaseManager == null)
+        {
+            phaseManager = FindObjectOfType<PhaseManager>();
+        }
+    }
 
 
     // パリィ受付開始
@@ -34,14 +46,15 @@ public class EnemyParryReceiver : MonoBehaviour
         Debug.Log("パリィ受付開始！");
     }
 
+
     // パリィ受付終了
     public void EndParryWindow()
     {
         if (!CanBeParried)
-        {
             return;
-        }
+
         CanBeParried = false;
+
         if (!hasBeenParried)
         {
             Debug.Log("パリィ失敗！見逃し！");
@@ -52,25 +65,47 @@ public class EnemyParryReceiver : MonoBehaviour
     }
 
 
+    // パリィ受付状態のリセット
+    public void ResetParry()
+    {
+        CanBeParried = false;
+        hasBeenParried = false;
+    }
+
+
     // パリィ判定
     public bool TryParry()
     {
-        if (!CanBeParried)
+        if (!CanBeParried || hasBeenParried)
+            return false;
+
+        if (phaseManager == null)
         {
+            Debug.LogError("PhaseManagerが設定されていません！");
             return false;
         }
 
-        if (hasBeenParried)
+        // 現在の敵を取得
+        EnemyStaminaController enemy = phaseManager.CurrentEnemy;
+
+        if (enemy == null)
         {
+            Debug.LogWarning("現在の敵が設定されていません！");
+            return false;
+        }
+
+        if (enemy.IsBroken)
+        {
+            Debug.LogWarning("敵は現在体勢を崩しています！");
             return false;
         }
 
         hasBeenParried = true;
 
-        Debug.Log("パリィ成功！");
+        Debug.Log("パリィ成功！対象：" + enemy.name);
 
-        // 敵のスタミナを減らす
-        enemyStamina.TakeParryDamage();
+        // 現在の敵のスタミナを減らす
+        enemy.TakeParryDamage();
 
         // パリィ成功イベントを通知
         OnParrySuccess?.Invoke();
@@ -79,8 +114,7 @@ public class EnemyParryReceiver : MonoBehaviour
     }
 
 
-
-    //デバッグ用
+    // デバッグ用
     [ContextMenu("Test/Start Parry Window")]
     private void TestStartParryWindow()
     {

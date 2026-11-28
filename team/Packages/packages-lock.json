@@ -24,17 +24,16 @@
       "hash": "acc1c7bc9ea34c33b830e40316fca52553878d29"
     },
     "com.unity.2d.animation": {
-      "version": "13.0.6",
+      "version": "file:com.unity.2d.animation",
       "depth": 0,
-      "source": "registry",
+      "source": "embedded",
       "dependencies": {
         "com.unity.2d.common": "12.0.4",
         "com.unity.2d.sprite": "1.0.0",
         "com.unity.collections": "2.4.3",
         "com.unity.modules.animation": "1.0.0",
         "com.unity.modules.uielements": "1.0.0"
-      },
-      "url": "https://packages.unity.com"
+      }
     },
     "com.unity.2d.aseprite": {
       "version": "3.0.2",
